@@ -1,0 +1,204 @@
+/// =============================================================
+/// File: main.dart
+/// Mô tả: Điểm khởi chạy ứng dụng SPX Express.
+///        Hiển thị màn hình chính (HomeScreen) với lưới 4 chức năng:
+///        - Phân Loại: quản lý bao hàng (TO)
+///        - Tra cứu đơn hàng
+///        - Quản lý đơn hàng
+///        - Cài đặt
+/// =============================================================
+import 'package:flutter/material.dart';
+import 'login_page.dart';
+import 'dart:io';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'phan_loai_screen.dart';
+import 'data/order_dtb.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
+  final count = await OrderDatabase.instance.countOrders();
+  print('Số lượng đơn hàng trong database: $count');
+
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LoginPage(),
+    );
+  }
+}
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  Widget buildCard(Color color, IconData icon, String title, {VoidCallback? onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: Colors.white.withOpacity(0.3),
+        highlightColor: Colors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.3),
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 40, color: Colors.black54),
+              SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Icon user ở góc trái trên cùng
+            Positioned(
+              top: 16,
+              left: 16,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/user2.png',
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+            // Grid menu - centered on full screen
+            Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: GridView.count(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 15,
+                  mainAxisSpacing: 15,
+                  children: [
+                    buildCard(
+                      Colors.blue[100]!,
+                      Icons.camera_alt,
+                      "Phân Loại",
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PhanLoaiScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    buildCard(
+                      Colors.green[100]!,
+                      Icons.search,
+                      "Tra cứu đơn hàng",
+                    ),
+                    buildCard(
+                      Colors.purple[100]!,
+                      Icons.folder,
+                      "Quản lý đơn hàng",
+                    ),
+                    buildCard(
+                      Colors.yellow[100]!,
+                      Icons.settings,
+                      "Cài đặt",
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // Header - overlay on top
+            Container(
+              width: double.infinity,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.orange[700],
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.inventory_2,                      size: 55,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'SPX Express',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
